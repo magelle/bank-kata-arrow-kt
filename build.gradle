@@ -1,0 +1,51 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.3.11'
+}
+
+group 'magelle'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+def arrow_version = "0.8.1"
+def spek_version = "2.0.0-rc.1"
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    // Arrow
+    compile "io.arrow-kt:arrow-core:$arrow_version"
+    compile "io.arrow-kt:arrow-syntax:$arrow_version"
+    compile "io.arrow-kt:arrow-typeclasses:$arrow_version"
+    compile "io.arrow-kt:arrow-data:$arrow_version"
+    compile "io.arrow-kt:arrow-instances-core:$arrow_version"
+    compile "io.arrow-kt:arrow-instances-data:$arrow_version"
+    kapt    "io.arrow-kt:arrow-annotations-processor:$arrow_version"
+
+    // Spek
+    testImplementation ("org.spekframework.spek2:spek-dsl-jvm:${spek_version}")  {
+        exclude group: "org.jetbrains.kotlin"
+    }
+    testRuntimeOnly ("org.spekframework.spek2:spek-runner-junit5:${spek_version}") {
+        exclude group: "org.junit.platform"
+        exclude group: "org.jetbrains.kotlin"
+    }
+
+    // kotlintest
+    testImplementation "io.kotlintest:kotlintest-runner-junit5:3.1.11"
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+test {
+    useJUnitPlatform {
+        includeEngines 'spek2'
+    }
+}
