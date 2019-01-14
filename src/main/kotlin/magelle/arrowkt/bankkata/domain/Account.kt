@@ -13,18 +13,20 @@ data class Account(val operations: List<Operation> = listOf())
 
 fun withdraw(account: Account, amount: Int, date: LocalDate): Either<String, Account> {
     if (balance(account) < amount) return "You can't withdraw more than the balance.".left()
-    return Account(
-        operations = account.operations.plus(Withdraw(amount, date))
-    ).right()
+    return account.operations
+        .plus(Withdraw(amount, date))
+        .let{ Account(it) }
+        .right()
 }
 
 fun deposit(account: Account, amount: Int, date: LocalDate): Either<String, Account> =
-    Account(
-        operations = account.operations.plus(Deposit(amount, date))
-    ).right()
+    account.operations
+        .plus(Deposit(amount, date))
+        .let { Account(it) }
+        .right()
 
 fun balance(account: Account) = account.operations
-    .fold(0) { balance, cur -> incBalance(balance, cur) }
+    .fold(0) { balance, operation -> incBalance(balance, operation) }
 
 fun incBalance(balance: Int, operation: Operation) =
     when (operation) {
