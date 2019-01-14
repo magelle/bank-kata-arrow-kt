@@ -15,7 +15,7 @@ fun withdraw(account: Account, amount: Int, date: LocalDate): Either<String, Acc
     if (balance(account) < amount) return "You can't withdraw more than the balance.".left()
     return account.operations
         .plus(Withdraw(amount, date))
-        .let{ Account(it) }
+        .let { Account(it) }
         .right()
 }
 
