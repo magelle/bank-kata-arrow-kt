@@ -18,13 +18,13 @@ fun statement(account: Account) =
         )
     }.a.reversed()
 
-fun incBalance(balance: Int, operation: Operation) =
+private fun incBalance(balance: Int, operation: Operation) =
     when (operation) {
         is Deposit -> balance + operation.amount
         is Withdraw -> balance - operation.amount
     }
 
-fun toMovement(operation: Operation, balance: Int) =
+private fun toMovement(operation: Operation, balance: Int) =
     when (operation) {
         is Deposit -> Movement(
             format(operation.date),
@@ -40,8 +40,8 @@ fun toMovement(operation: Operation, balance: Int) =
         )
     }
 
-fun format(date: LocalDate) = date.format(DateTimeFormatter.ofPattern("DD/MM/YYYY"))!!
+private fun format(date: LocalDate) = date.format(DateTimeFormatter.ofPattern("DD/MM/YYYY"))!!
 
-fun format(number: Int) = number.toString()
+private fun format(number: Int) = number.toString()
 
 data class Movement(val date: String, val credit: String, val debit: String, val balance: String)
