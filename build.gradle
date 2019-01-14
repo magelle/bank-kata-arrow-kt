@@ -14,6 +14,7 @@ def arrow_version = "0.8.2"
 def spek_version = "2.0.0-rc.1"
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+
     // Arrow
     compile "io.arrow-kt:arrow-core:$arrow_version"
     compile "io.arrow-kt:arrow-syntax:$arrow_version"
@@ -21,6 +22,7 @@ dependencies {
     compile "io.arrow-kt:arrow-data:$arrow_version"
     compile "io.arrow-kt:arrow-instances-core:$arrow_version"
     compile "io.arrow-kt:arrow-instances-data:$arrow_version"
+    compile "io.arrow-kt:arrow-optics:$arrow_version" //optional
     kapt    "io.arrow-kt:arrow-annotations-processor:$arrow_version"
 
     // Spek
