@@ -13,18 +13,21 @@ data class Withdraw(val amount: Int, val date: LocalDate) : Operation()
 data class Account(val operations: List<Operation> = listOf())
 
 fun withdraw(account: Account, amount: Int, date: LocalDate): Either<String, Account> {
-    if (balanceLens.get(account) < amount) return "You can't withdraw more than the balance.".left()
-    return account.operations
-        .plus(Withdraw(amount, date))
-        .let { Account(it) }
-        .right()
+    return when {
+        (balanceLens.get(account) < amount) -> return "You can't withdraw more than the balance.".left()
+        else -> addOperation(account, Withdraw(amount, date)).right()
+    }
 }
 
 fun deposit(account: Account, amount: Int, date: LocalDate): Either<String, Account> =
-    account.operations
-        .plus(Deposit(amount, date))
-        .let { Account(it) }
-        .right()
+    addOperation(account, Deposit(amount, date)).right()
+
+private fun addOperation(
+    account: Account,
+    operation: Operation
+) = account.operations
+    .plus(operation)
+    .let { Account(it) }
 
 fun incBalance(balance: Int, operation: Operation) =
     when (operation) {
