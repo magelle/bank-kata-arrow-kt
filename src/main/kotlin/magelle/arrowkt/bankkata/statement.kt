@@ -13,7 +13,7 @@ fun statement(account: Account) =
     { acc, operation ->
         val balance = incBalance(acc.b, operation)
         Tuple2(
-            acc.a.union(listOf(toMovement(operation, balance))).toList(),
+            acc.a.plus(toMovement(operation, balance)),
             balance
         )
     }.a.reversed()
@@ -40,7 +40,7 @@ fun toMovement(operation: Operation, balance: Int) =
         )
     }
 
-fun format(date: LocalDate) = date.format(DateTimeFormatter.ofPattern("DD/MM/YYYY"))
+fun format(date: LocalDate) = date.format(DateTimeFormatter.ofPattern("DD/MM/YYYY"))!!
 
 fun format(number: Int) = number.toString()
 
