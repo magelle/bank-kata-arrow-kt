@@ -1,5 +1,9 @@
 package magelle.arrowkt.bankkata
 
+import arrow.core.Either
+import arrow.core.flatMap
+import arrow.core.left
+import arrow.core.right
 import io.kotlintest.shouldBe
 import magelle.arrowkt.bankkata.domain.Account
 import magelle.arrowkt.bankkata.domain.deposit
@@ -11,29 +15,27 @@ import java.time.LocalDate
 @Suppress("unused")
 object SetFeature : Spek({
     Feature("Bank Account Management") {
-        lateinit var account: Account
-
+        lateinit var result: Either<String, Account>
 
         Scenario("I should be able to get the statement") {
             Given("An account") {
-                account = Account()
+                result = Account().right()
             }
 
             And("I made a deposit of 1000") {
-                account = deposit(account, 1000, LocalDate.of(2012, 1, 10))
+                result = result.flatMap { deposit(it, 1000, LocalDate.of(2012, 1, 10)) }
             }
 
             And("I made a deposit of 2000") {
-                account = deposit(account, 2000, LocalDate.of(2012, 1, 13))
+                result = result.flatMap { deposit(it, 2000, LocalDate.of(2012, 1, 13)) }
             }
 
             And("I did withdraw 500") {
-                account = withdraw(account, 500, LocalDate.of(2012, 1, 14))
+                result = result.flatMap { withdraw(it, 500, LocalDate.of(2012, 1, 14)) }
             }
 
             Then("the statement should be ") {
-                print(account)
-                statement(account) shouldBe listOf(
+                result.map { statement(it) } shouldBe listOf(
                     Movement(
                         date = "14/01/2012",
                         credit = "",
@@ -52,9 +54,48 @@ object SetFeature : Spek({
                         debit = "",
                         balance = "1000"
                     )
-                )
+                ).right()
+            }
+        }
+    }
+
+    Feature("Maximum withdrawal is balance, can't go under 0") {
+        lateinit var result: Either<String, Account>
+
+        Scenario("I should not be able to withdraw more than the balance") {
+            Given("An account") {
+                result = Account().right()
+            }
+
+            And("I made a deposit of 1000") {
+                result = result.flatMap { deposit(it, 1000, LocalDate.of(2012, 1, 10)) }
+            }
+
+            When("I withdraw 1001") {
+                result = result.flatMap { withdraw(it, 1001, LocalDate.of(2012, 1, 10)) }
+            }
+
+            Then("I get an error") {
+                result shouldBe "You can't withdraw more than the balance.".left()
             }
         }
 
+        Scenario("I should be able to withdraw when the balance is enough") {
+            Given("An account") {
+                result = Account().right()
+            }
+
+            And("I made a deposit of 1000") {
+                result = result.flatMap { deposit(it, 1000, LocalDate.of(2012, 1, 10)) }
+            }
+
+            When("I withdraw 1001") {
+                result = result.flatMap { withdraw(it, 1000, LocalDate.of(2012, 1, 10)) }
+            }
+
+            Then("I get an error") {
+                result.isRight() shouldBe true
+            }
+        }
     }
 })

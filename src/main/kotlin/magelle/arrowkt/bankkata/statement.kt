@@ -1,10 +1,7 @@
 package magelle.arrowkt.bankkata
 
 import arrow.core.Tuple2
-import magelle.arrowkt.bankkata.domain.Account
-import magelle.arrowkt.bankkata.domain.Deposit
-import magelle.arrowkt.bankkata.domain.Operation
-import magelle.arrowkt.bankkata.domain.Withdraw
+import magelle.arrowkt.bankkata.domain.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -17,12 +14,6 @@ fun statement(account: Account) =
             balance
         )
     }.a.reversed()
-
-private fun incBalance(balance: Int, operation: Operation) =
-    when (operation) {
-        is Deposit -> balance + operation.amount
-        is Withdraw -> balance - operation.amount
-    }
 
 private fun toMovement(operation: Operation, balance: Int) =
     when (operation) {
