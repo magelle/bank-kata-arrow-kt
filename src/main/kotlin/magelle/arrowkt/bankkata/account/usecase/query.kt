@@ -1,11 +1,14 @@
 package magelle.arrowkt.bankkata.account.usecase
 
-import arrow.core.Either
-import magelle.arrowkt.bankkata.account.Movement
+import arrow.effects.IO
+import arrow.effects.instances.io.monad.binding
 import magelle.arrowkt.bankkata.account.Account
 import magelle.arrowkt.bankkata.account.statement
 
-fun printStatementQuery(getAccount: (Int) -> Either<String, Account>) =
+fun printStatementQuery(getAccount: (Int) -> IO<Account>) =
     { accountId: Int ->
-        getAccount(accountId).map { statement(it) }
+        binding {
+            var account = bind { getAccount(accountId) }
+            statement(account)
+        }
     }

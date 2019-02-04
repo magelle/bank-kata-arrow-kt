@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.right
+import arrow.effects.IO
 import io.kotlintest.shouldBe
 import magelle.arrowkt.bankkata.account.Movement
 import magelle.arrowkt.bankkata.account.usecase.askForAccountCreation
@@ -20,7 +21,7 @@ import java.time.LocalDate
 @Suppress("unused")
 object AccountIT : Spek({
     Feature("Bank Account Management") {
-        lateinit var accountId: Either<String, Int>
+        var accountId: Int = 0
 
         Scenario("I should be able to get the statement") {
             Given("An account") {
@@ -29,21 +30,21 @@ object AccountIT : Spek({
 
             And("I made a deposit of 1000") {
                 nowIs(LocalDate.of(2012, 1, 10))
-                accountId.flatMap { makeDeposit(it, 1000) }
+                makeDeposit(accountId, 1000)
             }
 
             And("I made a deposit of 2000") {
                 nowIs(LocalDate.of(2012, 1, 13))
-                accountId.flatMap { makeDeposit(it, 2000) }
+                makeDeposit(accountId, 2000)
             }
 
             And("I did withdraw 500") {
                 nowIs(LocalDate.of(2012, 1, 14))
-                accountId.flatMap { makeWithdrawal(it, 500) }
+                makeWithdrawal(accountId, 500)
             }
 
             Then("the statement should be ") {
-                accountId.flatMap { printStatement(it) } shouldBe listOf(
+                printStatement(accountId) shouldBe listOf(
                     Movement(
                         date = "14/01/2012",
                         credit = "",
@@ -68,19 +69,20 @@ object AccountIT : Spek({
     }
 
     Feature("Maximum withdrawal is balance, can't go under 0") {
+        var accountId: Int = 0
         lateinit var result: Either<String, Int>
 
         Scenario("I should not be able to withdraw more than the balance") {
             Given("An account") {
-                result = createAccount()
+                accountId = createAccount()
             }
 
             And("I made a deposit of 1000") {
-                result = result.flatMap { makeDeposit(it, 1000) }
+                result = makeDeposit(accountId, 1000)
             }
 
             When("I withdraw 1001") {
-                result = result.flatMap { makeWithdrawal(it, 1001) }
+                result = makeWithdrawal(accountId, 1001)
             }
 
             Then("I get an error") {
@@ -90,15 +92,15 @@ object AccountIT : Spek({
 
         Scenario("I should be able to withdraw when the balance is enough") {
             Given("An account") {
-                result = createAccount()
+                accountId = createAccount()
             }
 
             And("I made a deposit of 1000") {
-                result = result.flatMap { makeDeposit(it, 1000) }
+                result = makeDeposit(accountId, 1000)
             }
 
             When("I withdraw 1001") {
-                result = result.flatMap { makeWithdrawal(it, 1000) }
+                result = makeWithdrawal(accountId, 1000)
             }
 
             Then("I get an error") {

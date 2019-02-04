@@ -1,36 +1,47 @@
 package magelle.arrowkt.bankkata.account.usecase
 
-import arrow.core.Either
-import arrow.core.flatMap
+import arrow.effects.IO
+import arrow.effects.fix
+import arrow.effects.instances.io.monad.binding
 import magelle.arrowkt.bankkata.account.Account
 import magelle.arrowkt.bankkata.account.deposit
 import magelle.arrowkt.bankkata.account.withdraw
 import java.time.LocalDate
 
 fun askForAccountCreation(
-    provideAccountId: () -> Either<String, Int>,
-    saveAccount: (Int, Account) -> Either<String, Int>
-) = { provideAccountId().flatMap { saveAccount(it, Account()) } }
+    provideAccountId: () -> IO<Int>,
+    saveAccount: (Int, Account) -> IO<Int>
+) = {
+    binding {
+        val accountId = bind { provideAccountId() }
+        saveAccount(accountId, Account())
+        accountId
+    }.fix().unsafeRunSync()
+}
 
 
 fun askForDeposit(
     now: () -> LocalDate,
-    getAccount: (Int) -> Either<String, Account>,
-    saveAccount: (Int, Account) -> Either<String, Int>
+    getAccount: (Int) -> IO<Account>,
+    saveAccount: (Int, Account) -> IO<Int>
 ) = { accountId: Int,
       amount: Int ->
-    getAccount(accountId)
-        .flatMap { deposit(it, amount, now()) }
-        .flatMap { saveAccount(accountId, it) }
+    binding {
+        val account = bind { getAccount(accountId) }
+        deposit(account, amount, now())
+            .map { bind { saveAccount(accountId, it) } }
+    }.fix().unsafeRunSync()
 }
 
 fun askForWithdrawal(
     now: () -> LocalDate,
-    getAccount: (Int) -> Either<String, Account>,
-    saveAccount: (Int, Account) -> Either<String, Int>
+    getAccount: (Int) -> IO<Account>,
+    saveAccount: (Int, Account) -> IO<Int>
 ) = { accountId: Int,
       amount: Int ->
-    getAccount(accountId)
-        .flatMap { withdraw(it, amount, now()) }
-        .flatMap { saveAccount(accountId, it) }
+    binding {
+        val account = bind { getAccount(accountId) }
+        withdraw(account, amount, now())
+            .map { bind { saveAccount(accountId, it) } }
+    }.fix().unsafeRunSync()
 }
