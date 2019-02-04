@@ -109,10 +109,7 @@ object AccountIT : Spek({
 
 })
 
-fun createAccount() = askForAccountCreation(provideAccountId, saveAccount)
-
+val createAccount = askForAccountCreation(provideAccountId, saveAccount)
 val makeDeposit = askForDeposit(now, getAccount, saveAccount)
-
 val makeWithdrawal = askForWithdrawal(now, getAccount, saveAccount)
-
 val printStatement = printStatementQuery(getAccount)

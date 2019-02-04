@@ -10,8 +10,7 @@ import java.time.LocalDate
 fun askForAccountCreation(
     provideAccountId: () -> Either<String, Int>,
     saveAccount: (Int, Account) -> Either<String, Int>
-): Either<String, Int> =
-    provideAccountId().flatMap { saveAccount(it, Account()) }
+) = { provideAccountId().flatMap { saveAccount(it, Account()) } }
 
 
 fun askForDeposit(
