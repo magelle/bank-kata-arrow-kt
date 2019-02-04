@@ -12,12 +12,11 @@ data class Withdraw(val amount: Int, val date: LocalDate) : Operation()
 
 data class Account(val operations: List<Operation> = listOf())
 
-fun withdraw(account: Account, amount: Int, date: LocalDate): Either<String, Account> {
-    return when {
-        (balanceLens.get(account) < amount) -> return "You can't withdraw more than the balance.".left()
+fun withdraw(account: Account, amount: Int, date: LocalDate): Either<String, Account> =
+    when {
+        (balanceLens.get(account) < amount) -> "You can't withdraw more than the balance.".left()
         else -> addOperation(account, Withdraw(amount, date)).right()
     }
-}
 
 fun deposit(account: Account, amount: Int, date: LocalDate): Either<String, Account> =
     addOperation(account, Deposit(amount, date)).right()
