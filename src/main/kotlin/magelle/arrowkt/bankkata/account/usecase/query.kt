@@ -5,6 +5,7 @@ import magelle.arrowkt.bankkata.account.Movement
 import magelle.arrowkt.bankkata.account.Account
 import magelle.arrowkt.bankkata.account.statement
 
-fun printStatementQuery(getAccount: (Int) -> Either<String, Account>,
-                        accountId: Int): Either<String, List<Movement>> =
-    getAccount(accountId).map { statement(it) }
+fun printStatementQuery(getAccount: (Int) -> Either<String, Account>) =
+    { accountId: Int ->
+        getAccount(accountId).map { statement(it) }
+    }

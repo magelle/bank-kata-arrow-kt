@@ -111,11 +111,8 @@ object AccountIT : Spek({
 
 fun createAccount() = askForAccountCreation(provideAccountId, saveAccount)
 
-fun makeDeposit(accountId: Int, amount: Int): Either<String, Int> =
-    askForDeposit(now, getAccount, saveAccount, accountId, amount)
+val makeDeposit = askForDeposit(now, getAccount, saveAccount)
 
-fun makeWithdrawal(accountId: Int, amount: Int): Either<String, Int> =
-    askForWithdrawal(now, getAccount, saveAccount, accountId, amount)
+val makeWithdrawal = askForWithdrawal(now, getAccount, saveAccount)
 
-fun printStatement(accountId: Int): Either<String, List<Movement>> =
-    printStatementQuery(getAccount, accountId)
+val printStatement = printStatementQuery(getAccount)
