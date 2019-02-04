@@ -1,7 +1,6 @@
-package magelle.arrowkt.bankkata
+package magelle.arrowkt.bankkata.account
 
 import arrow.core.Tuple2
-import magelle.arrowkt.bankkata.domain.*
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 

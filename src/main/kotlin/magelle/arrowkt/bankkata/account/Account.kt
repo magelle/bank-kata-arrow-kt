@@ -1,4 +1,4 @@
-package magelle.arrowkt.bankkata.domain
+package magelle.arrowkt.bankkata.account
 
 import arrow.core.Either
 import arrow.core.left

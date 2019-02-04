@@ -5,15 +5,13 @@ import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.right
 import io.kotlintest.shouldBe
-import magelle.arrowkt.bankkata.domain.Account
-import magelle.arrowkt.bankkata.domain.deposit
-import magelle.arrowkt.bankkata.domain.withdraw
+import magelle.arrowkt.bankkata.account.*
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.gherkin.Feature
 import java.time.LocalDate
 
 @Suppress("unused")
-object SetFeature : Spek({
+object AccountFeature : Spek({
     Feature("Bank Account Management") {
         lateinit var result: Either<String, Account>
 
