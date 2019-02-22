@@ -15,7 +15,7 @@ import magelle.arrowkt.bankkata.infra.provideAccountId
 import magelle.arrowkt.bankkata.infra.saveAccount
 import java.time.LocalDate
 
-class AccountTests : StringSpec({
+class AccountIntegrationTests : StringSpec({
     "should be able to make deposit, withdrawal and get statement" {
         binding {
             val accountId = bind { createAccount() }
@@ -28,24 +28,9 @@ class AccountTests : StringSpec({
             bind { makeWithdrawal(accountId, 500.amount()) }
             bind { printStatement(accountId) }
         }.unsafeRunSync() shouldBe listOf(
-            Movement(
-                date = "14/01/2012",
-                credit = "",
-                debit = "500",
-                balance = "2500"
-            ),
-            Movement(
-                date = "13/01/2012",
-                credit = "2000",
-                debit = "",
-                balance = "3000"
-            ),
-            Movement(
-                date = "10/01/2012",
-                credit = "1000",
-                debit = "",
-                balance = "1000"
-            )
+            Movement(date = "14/01/2012", credit = "", debit = "500", balance = "2500"),
+            Movement(date = "13/01/2012", credit = "2000", debit = "", balance = "3000"),
+            Movement(date = "10/01/2012", credit = "1000", debit = "", balance = "1000")
         )
     }
 
