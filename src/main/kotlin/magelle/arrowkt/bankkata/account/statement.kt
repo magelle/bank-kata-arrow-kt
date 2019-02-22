@@ -5,7 +5,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 fun statement(account: Account) =
-    account.operations.fold(Tuple2(listOf<Movement>(), 0))
+    account.operations.fold(Tuple2(listOf<Movement>(), 0.amount()))
     { acc, operation ->
         val balance = incBalance(acc.b, operation)
         Tuple2(
@@ -14,7 +14,7 @@ fun statement(account: Account) =
         )
     }.a.reversed()
 
-private fun toMovement(operation: Operation, balance: Int) =
+private fun toMovement(operation: Operation, balance: Amount) =
     when (operation) {
         is Deposit -> Movement(
             format(operation.date),
@@ -32,6 +32,6 @@ private fun toMovement(operation: Operation, balance: Int) =
 
 private fun format(date: LocalDate) = date.format(DateTimeFormatter.ofPattern("DD/MM/YYYY"))!!
 
-private fun format(number: Int) = number.toString()
+private fun format(amount: Amount) = amount.toString()
 
 data class Movement(val date: String, val credit: String, val debit: String, val balance: String)

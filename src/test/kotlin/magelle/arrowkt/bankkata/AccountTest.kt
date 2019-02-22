@@ -21,15 +21,15 @@ object AccountFeature : Spek({
             }
 
             And("I made a deposit of 1000") {
-                result = result.flatMap { deposit(it, 1000, LocalDate.of(2012, 1, 10)) }
+                result = result.flatMap { deposit(it, 1000.amount(), LocalDate.of(2012, 1, 10)) }
             }
 
             And("I made a deposit of 2000") {
-                result = result.flatMap { deposit(it, 2000, LocalDate.of(2012, 1, 13)) }
+                result = result.flatMap { deposit(it, 2000.amount(), LocalDate.of(2012, 1, 13)) }
             }
 
             And("I did withdraw 500") {
-                result = result.flatMap { withdraw(it, 500, LocalDate.of(2012, 1, 14)) }
+                result = result.flatMap { withdraw(it, 500.amount(), LocalDate.of(2012, 1, 14)) }
             }
 
             Then("the statement should be ") {
@@ -66,11 +66,11 @@ object AccountFeature : Spek({
             }
 
             And("I made a deposit of 1000") {
-                result = result.flatMap { deposit(it, 1000, LocalDate.of(2012, 1, 10)) }
+                result = result.flatMap { deposit(it, 1000.amount(), LocalDate.of(2012, 1, 10)) }
             }
 
             When("I withdraw 1001") {
-                result = result.flatMap { withdraw(it, 1001, LocalDate.of(2012, 1, 10)) }
+                result = result.flatMap { withdraw(it, 1001.amount(), LocalDate.of(2012, 1, 10)) }
             }
 
             Then("I get an error") {
@@ -84,11 +84,11 @@ object AccountFeature : Spek({
             }
 
             And("I made a deposit of 1000") {
-                result = result.flatMap { deposit(it, 1000, LocalDate.of(2012, 1, 10)) }
+                result = result.flatMap { deposit(it, 1000.amount(), LocalDate.of(2012, 1, 10)) }
             }
 
             When("I withdraw 1001") {
-                result = result.flatMap { withdraw(it, 1000, LocalDate.of(2012, 1, 10)) }
+                result = result.flatMap { withdraw(it, 1000.amount(), LocalDate.of(2012, 1, 10)) }
             }
 
             Then("I get an error") {

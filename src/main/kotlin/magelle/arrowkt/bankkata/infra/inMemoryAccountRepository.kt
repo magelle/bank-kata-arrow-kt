@@ -2,25 +2,27 @@ package magelle.arrowkt.bankkata.infra
 
 import arrow.effects.IO
 import magelle.arrowkt.bankkata.account.Account
+import magelle.arrowkt.bankkata.account.AccountId
+import magelle.arrowkt.bankkata.account.accountId
 import java.util.concurrent.atomic.AtomicInteger
 
 
 val nextAccountId = AtomicInteger()
-val provideAccountId: () -> IO<Int> =
-    { IO.just(nextAccountId.getAndIncrement()) }
+val provideAccountId: () -> IO<AccountId> =
+    { IO.just(nextAccountId.getAndIncrement().accountId()) }
 
 
-val accounts = mutableMapOf<Int, Account>()
-val saveAccount: (accountId: Int, account: Account) -> IO<Int> =
-    { accountId: Int, account: Account ->
+val accounts = mutableMapOf<AccountId, Account>()
+val saveAccount: (accountId: AccountId, account: Account) -> IO<AccountId> =
+    { accountId: AccountId, account: Account ->
         accounts[accountId] = account
         IO.just(accountId)
 
     }
 
-val getAccount: (accountId: Int) -> IO<Account> =
-    { accountId: Int ->
+val getAccount: (accountId: AccountId) -> IO<Account> =
+    { accountId: AccountId ->
         accounts[accountId]
             ?.let { IO.just(it) }
-            ?: IO.raiseError<Account>(RuntimeException("Account with id $accountId not found."))
+            ?: IO.raiseError(RuntimeException("Account with id $accountId not found."))
     }
