@@ -9,7 +9,7 @@ import magelle.arrowkt.bankkata.account.statement
 fun printStatementQuery(getAccount: (AccountId) -> IO<Account>) =
     { accountId: AccountId ->
         binding {
-            var account = bind { getAccount(accountId) }
+            val account = bind { getAccount(accountId) }
             statement(account)
         }
     }
