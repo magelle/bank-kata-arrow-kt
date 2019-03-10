@@ -7,7 +7,9 @@ import arrow.optics.Getter
 import arrow.product
 import java.time.LocalDate
 
-@product
+
+data class Error(val message: String)
+
 data class Amount(private val amount: Int) {
     operator fun compareTo(other: Amount) = this.amount.compareTo(other.amount)
     operator fun plus(other: Amount) = Amount(this.amount + other.amount)
@@ -25,13 +27,13 @@ data class Withdraw(val amount: Amount, val date: LocalDate) : Operation()
 
 data class Account(val operations: List<Operation> = listOf())
 
-fun withdraw(account: Account, amount: Amount, date: LocalDate): Either<String, Account> =
+fun withdraw(account: Account, amount: Amount, date: LocalDate): Either<Error, Account> =
     when {
-        (balanceLens.get(account) < amount) -> "You can't withdraw more than the balance.".left()
+        (balanceLens.get(account) < amount) -> Error("You can't withdraw more than the balance.").left()
         else -> addOperation(account, Withdraw(amount, date)).right()
     }
 
-fun deposit(account: Account, amount: Amount, date: LocalDate): Either<String, Account> =
+fun deposit(account: Account, amount: Amount, date: LocalDate): Either<Error, Account> =
     addOperation(account, Deposit(amount, date)).right()
 
 private fun addOperation(

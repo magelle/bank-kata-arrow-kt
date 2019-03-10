@@ -41,7 +41,7 @@ class AccountTest : StringSpec({
         val result = Account().right()
             .flatMap { deposit(it, 1000.amount(), LocalDate.of(2012, 1, 10)) }
             .flatMap { withdraw(it, 1001.amount(), LocalDate.of(2012, 1, 10)) }
-        result shouldBe "You can't withdraw more than the balance.".left()
+        result shouldBe Error("You can't withdraw more than the balance.").left()
     }
 
     "I should be able to withdraw when the balance is enough" {
