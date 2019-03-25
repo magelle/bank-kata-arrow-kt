@@ -4,20 +4,21 @@ import arrow.effects.IO
 import magelle.arrowkt.bankkata.account.Account
 import magelle.arrowkt.bankkata.account.AccountId
 import magelle.arrowkt.bankkata.account.accountId
+import org.jetbrains.exposed.sql.Database
 import java.util.concurrent.atomic.AtomicInteger
 
 
-val nextAccountId = AtomicInteger()
+private val nextAccountId = AtomicInteger()
+private val accounts = mutableMapOf<AccountId, Account>()
+
 val provideAccountId: () -> IO<AccountId> =
     { IO.just(nextAccountId.getAndIncrement().accountId()) }
 
 
-val accounts = mutableMapOf<AccountId, Account>()
-val saveAccount: (accountId: AccountId, account: Account) -> IO<AccountId> =
-    { accountId: AccountId, account: Account ->
-        accounts[accountId] = account
-        IO.just(accountId)
-
+val saveAccount: (account: Account) -> IO<AccountId> =
+    { account: Account ->
+        accounts[account.id] = account
+        IO.just(account.id)
     }
 
 val getAccount: (accountId: AccountId) -> IO<Account> =
@@ -26,3 +27,4 @@ val getAccount: (accountId: AccountId) -> IO<Account> =
             ?.let { IO.just(it) }
             ?: IO.raiseError(RuntimeException("Account with id $accountId not found."))
     }
+

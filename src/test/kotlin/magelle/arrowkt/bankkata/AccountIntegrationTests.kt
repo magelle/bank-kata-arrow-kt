@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.effects.instances.io.monad.binding
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
+import magelle.arrowkt.bankkata.account.Error
 import magelle.arrowkt.bankkata.account.Movement
 import magelle.arrowkt.bankkata.account.amount
 import magelle.arrowkt.bankkata.account.usecase.askForAccountCreation
@@ -39,7 +40,7 @@ class AccountIntegrationTests : StringSpec({
             val accountId = bind { createAccount() }
             bind { makeDeposit(accountId, 1000.amount()) }
             bind { makeWithdrawal(accountId, 1001.amount()) }
-        }.unsafeRunSync() shouldBe "You can't withdraw more than the balance.".left()
+        }.unsafeRunSync() shouldBe Error("You can't withdraw more than the balance.").left()
     }
 
     "Should allow to withdraw all the money" {

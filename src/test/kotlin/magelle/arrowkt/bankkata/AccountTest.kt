@@ -11,7 +11,7 @@ import java.time.LocalDate
 @Suppress("unused")
 class AccountTest : StringSpec({
     "I should be able to get the statement" {
-        Account().right()
+        Account(AccountId(1)).right()
             .flatMap { deposit(it, 1000.amount(), LocalDate.of(2012, 1, 10)) }
             .flatMap { deposit(it, 2000.amount(), LocalDate.of(2012, 1, 13)) }
             .flatMap { withdraw(it, 500.amount(), LocalDate.of(2012, 1, 14)) }
@@ -38,14 +38,14 @@ class AccountTest : StringSpec({
     }
 
     "I should not be able to withdraw more than the balance" {
-        val result = Account().right()
+        val result = Account(AccountId(1)).right()
             .flatMap { deposit(it, 1000.amount(), LocalDate.of(2012, 1, 10)) }
             .flatMap { withdraw(it, 1001.amount(), LocalDate.of(2012, 1, 10)) }
         result shouldBe Error("You can't withdraw more than the balance.").left()
     }
 
     "I should be able to withdraw when the balance is enough" {
-        Account().right()
+        Account(AccountId(1)).right()
             .flatMap { deposit(it, 1000.amount(), LocalDate.of(2012, 1, 10)) }
             .flatMap { withdraw(it, 1000.amount(), LocalDate.of(2012, 1, 10)) }
             .isRight() shouldBe true

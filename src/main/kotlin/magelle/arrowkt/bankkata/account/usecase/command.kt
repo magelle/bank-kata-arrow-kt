@@ -7,13 +7,13 @@ import java.time.LocalDate
 
 fun askForAccountCreation(
     provideAccountId: () -> IO<AccountId>,
-    saveAccount: (AccountId, Account) -> IO<AccountId>
+    saveAccount: (Account) -> IO<AccountId>
 ) = {
     binding {
         bind {
             provideAccountId()
                 .map {
-                    saveAccount(it, Account())
+                    saveAccount(Account(it))
                     it
                 }
         }
@@ -24,25 +24,25 @@ fun askForAccountCreation(
 fun askForDeposit(
     now: () -> LocalDate,
     getAccount: (AccountId) -> IO<Account>,
-    saveAccount: (AccountId, Account) -> IO<AccountId>
+    saveAccount: (Account) -> IO<AccountId>
 ) = { accountId: AccountId,
       amount: Amount ->
     binding {
         val account = bind { getAccount(accountId) }
         deposit(account, amount, now())
-            .map { bind { saveAccount(accountId, it) } }
+            .map { bind { saveAccount(it) } }
     }
 }
 
 fun askForWithdrawal(
     now: () -> LocalDate,
     getAccount: (AccountId) -> IO<Account>,
-    saveAccount: (AccountId, Account) -> IO<AccountId>
+    saveAccount: (Account) -> IO<AccountId>
 ) = { accountId: AccountId,
       amount: Amount ->
     binding {
         val account = bind { getAccount(accountId) }
         withdraw(account, amount, now())
-            .map { bind { saveAccount(accountId, it) } }
+            .map { bind { saveAccount(it) } }
     }
 }

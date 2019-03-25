@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import arrow.optics.Getter
-import arrow.product
 import java.time.LocalDate
 
 
@@ -25,7 +24,7 @@ sealed class Operation
 data class Deposit(val amount: Amount, val date: LocalDate) : Operation()
 data class Withdraw(val amount: Amount, val date: LocalDate) : Operation()
 
-data class Account(val operations: List<Operation> = listOf())
+data class Account(val id: AccountId, val operations: List<Operation> = listOf())
 
 fun withdraw(account: Account, amount: Amount, date: LocalDate): Either<Error, Account> =
     when {
@@ -41,7 +40,7 @@ private fun addOperation(
     operation: Operation
 ) = account.operations
     .plus(operation)
-    .let { Account(it) }
+    .let { Account(account.id, it) }
 
 fun incBalance(balance: Amount, operation: Operation) =
     when (operation) {
