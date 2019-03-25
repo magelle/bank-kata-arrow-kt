@@ -27,6 +27,10 @@ dependencies {
     compile "io.arrow-kt:arrow-effects-instances:$arrow_version" //optional
     compile "io.arrow-kt:arrow-optics:$arrow_version" //optional
 
+    // Storage
+    compile "org.jetbrains.exposed:exposed:0.13.5"
+    compile "com.h2database:h2:1.4.199"
+
     // kotlintest
     testImplementation "io.kotlintest:kotlintest-runner-junit5:3.1.11"
 }

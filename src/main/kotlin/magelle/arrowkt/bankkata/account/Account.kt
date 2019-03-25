@@ -9,7 +9,7 @@ import java.time.LocalDate
 
 data class Error(val message: String)
 
-data class Amount(private val amount: Int) {
+data class Amount(val amount: Int) {
     operator fun compareTo(other: Amount) = this.amount.compareTo(other.amount)
     operator fun plus(other: Amount) = Amount(this.amount + other.amount)
     operator fun minus(other: Amount) = Amount(this.amount - other.amount)
@@ -17,7 +17,7 @@ data class Amount(private val amount: Int) {
 }
 fun Int.amount() = Amount(this)
 
-data class AccountId(private val id: Int)
+data class AccountId(val id: Int)
 fun Int.accountId() = AccountId(this)
 
 sealed class Operation
