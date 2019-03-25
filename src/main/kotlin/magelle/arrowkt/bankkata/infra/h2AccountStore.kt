@@ -1,32 +1,40 @@
 package magelle.arrowkt.bankkata.infra
 
 import magelle.arrowkt.bankkata.account.*
+import org.jetbrains.exposed.dao.IntIdTable
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
-import java.util.concurrent.atomic.AtomicInteger
 
 val h2AccountStore = object : AccountStore {
-    private val nextAccountId = AtomicInteger()
     private val connection =
         Database.connect(
-            url = "jdbc:h2:~/account",
+            url = "jdbc:h2:./build/account",
             driver = "org.h2.Driver",
             user = "sa"
         )
 
     init {
-        transaction {
+        transaction(connection) {
             addLogger(StdOutSqlLogger)
             SchemaUtils.create(Operations)
+            SchemaUtils.create(Accounts)
         }
     }
 
-    override fun nextAccountId() =
-        nextAccountId.incrementAndGet().accountId()
+    override fun nextAccountId() = transaction(connection) {
+        addLogger(StdOutSqlLogger)
+        Accounts.insert { }
+        Accounts.selectAll()
+            .orderBy(Accounts.id, SortOrder.DESC)
+            .limit(1)
+            .map { it[Accounts.id] }
+            .firstOrNull()
+            ?.value?.accountId()
+            ?: AccountId(1)
+    }
 
-    override fun get(id: AccountId) = transaction {
+    override fun get(id: AccountId) = transaction(connection) {
         retrieveAccount(id)
     }
 
@@ -34,15 +42,17 @@ val h2AccountStore = object : AccountStore {
         Account(id, retrieveOperations(id))
 
     override fun save(account: Account) =
-        transaction {
+        transaction(connection) {
             addLogger(StdOutSqlLogger)
-            deleteAllOperations(account.id)
-            insertOperations(account)
+            val operationsOfAccount = account.operations
+            val existingOperations = retrieveOperations(account.id)
+            val operationsToSave = operationsOfAccount - existingOperations
+            insertOperations(account.id, operationsToSave)
             account.id
         }
 
     private fun retrieveOperations(id: AccountId) =
-        Operations.select { equalsAccountId(id) }.map {
+        Operations.select { Operations.accountId eq id.id }.map {
             when (it[Operations.type]) {
                 OperationType.DEPOSIT -> Deposit(
                     Amount(it[Operations.amount]),
@@ -55,23 +65,16 @@ val h2AccountStore = object : AccountStore {
             }
         }
 
-    private fun insertOperations(account: Account) =
-        Operations.batchInsert(account.operations) {
-            this[Operations.accountId] = account.id.id
+    private fun insertOperations(id: AccountId, operations: List<Operation>) =
+        Operations.batchInsert(operations) {
+            this[Operations.accountId] = id.id
             this[Operations.type] = operationType(it)
             this[Operations.amount] = amount(it).amount
             this[Operations.date] = date(it).toEpochDay()
         }
-
-    private fun deleteAllOperations(id: AccountId) =
-        Operations.deleteWhere { equalsAccountId(id) }
-
-    private fun equalsAccountId(accountId: AccountId) = Operations.accountId eq accountId.id
-
-    private fun <T> transaction(statement: Transaction.() -> T) =
-        transaction(connection, statement)
 }
 
+object Accounts : IntIdTable("accounts") {}
 object Operations : Table("operations") {
     val accountId = integer("account_id")
     val type = enumeration("type", OperationType::class)
