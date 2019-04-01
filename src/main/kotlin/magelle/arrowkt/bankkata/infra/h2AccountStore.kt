@@ -8,6 +8,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
 
 val h2AccountStore = object : AccountStore {
+
     private val connection =
         Database.connect(
             url = "jdbc:h2:./build/account",
@@ -23,38 +24,34 @@ val h2AccountStore = object : AccountStore {
         }
     }
 
+    override fun <T> transaction(statement: Transaction.() -> T): T {
+        return transaction(connection, statement)
+    }
+
     override fun nextAccountId() = IO {
-        transaction(connection) {
-            addLogger(StdOutSqlLogger)
-            Accounts.insert { }
-            Accounts.selectAll()
-                .orderBy(Accounts.id, SortOrder.DESC)
-                .limit(1)
-                .map { it[Accounts.id] }
-                .firstOrNull()
-                ?.value?.accountId()
-                ?: AccountId(1)
-        }
+        Accounts.insert { }
+        Accounts.selectAll()
+            .orderBy(Accounts.id, SortOrder.DESC)
+            .limit(1)
+            .map { it[Accounts.id] }
+            .firstOrNull()
+            ?.value?.accountId()
+            ?: AccountId(1)
     }
 
     override fun get(id: AccountId) = IO {
-        transaction(connection) {
-            retrieveAccount(id)
-        }
+        retrieveAccount(id)
     }
 
     private fun retrieveAccount(id: AccountId) =
         Account(id, retrieveOperations(id))
 
     override fun save(account: Account) = IO {
-        transaction(connection) {
-            addLogger(StdOutSqlLogger)
-            val operationsOfAccount = account.operations
-            val existingOperations = retrieveOperations(account.id)
-            val operationsToSave = operationsOfAccount - existingOperations
-            insertOperations(account.id, operationsToSave)
-            account.id
-        }
+        val operationsOfAccount = account.operations
+        val existingOperations = retrieveOperations(account.id)
+        val operationsToSave = operationsOfAccount - existingOperations
+        insertOperations(account.id, operationsToSave)
+        account.id
     }
 
     private fun retrieveOperations(id: AccountId) =
