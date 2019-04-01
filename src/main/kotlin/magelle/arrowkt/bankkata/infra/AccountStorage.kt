@@ -6,11 +6,10 @@ import magelle.arrowkt.bankkata.account.AccountId
 
 
 val provideAccountId: () -> IO<AccountId> =
-    { IO.just(h2AccountStore.nextAccountId()) }
-
+    { h2AccountStore.nextAccountId() }
 
 val saveAccount: (account: Account) -> IO<AccountId> =
-    { account: Account -> IO.just(h2AccountStore.save(account)) }
+    { account: Account -> h2AccountStore.save(account) }
 
 val getAccount: (accountId: AccountId) -> IO<Account> =
-    { accountId: AccountId -> IO.just(h2AccountStore.get(accountId)) }
+    { accountId: AccountId -> h2AccountStore.get(accountId) }

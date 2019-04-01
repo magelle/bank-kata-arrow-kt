@@ -1,5 +1,6 @@
 package magelle.arrowkt.bankkata.infra
 
+import arrow.effects.IO
 import magelle.arrowkt.bankkata.account.*
 import org.jetbrains.exposed.dao.IntIdTable
 import org.jetbrains.exposed.sql.*
@@ -22,26 +23,30 @@ val h2AccountStore = object : AccountStore {
         }
     }
 
-    override fun nextAccountId() = transaction(connection) {
-        addLogger(StdOutSqlLogger)
-        Accounts.insert { }
-        Accounts.selectAll()
-            .orderBy(Accounts.id, SortOrder.DESC)
-            .limit(1)
-            .map { it[Accounts.id] }
-            .firstOrNull()
-            ?.value?.accountId()
-            ?: AccountId(1)
+    override fun nextAccountId() = IO {
+        transaction(connection) {
+            addLogger(StdOutSqlLogger)
+            Accounts.insert { }
+            Accounts.selectAll()
+                .orderBy(Accounts.id, SortOrder.DESC)
+                .limit(1)
+                .map { it[Accounts.id] }
+                .firstOrNull()
+                ?.value?.accountId()
+                ?: AccountId(1)
+        }
     }
 
-    override fun get(id: AccountId) = transaction(connection) {
-        retrieveAccount(id)
+    override fun get(id: AccountId) = IO {
+        transaction(connection) {
+            retrieveAccount(id)
+        }
     }
 
     private fun retrieveAccount(id: AccountId) =
         Account(id, retrieveOperations(id))
 
-    override fun save(account: Account) =
+    override fun save(account: Account) = IO {
         transaction(connection) {
             addLogger(StdOutSqlLogger)
             val operationsOfAccount = account.operations
@@ -50,6 +55,7 @@ val h2AccountStore = object : AccountStore {
             insertOperations(account.id, operationsToSave)
             account.id
         }
+    }
 
     private fun retrieveOperations(id: AccountId) =
         Operations.select { Operations.accountId eq id.id }.map {
