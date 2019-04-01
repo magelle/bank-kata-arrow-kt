@@ -7,7 +7,7 @@ import java.time.format.DateTimeFormatter
 fun statement(account: Account) =
     account.operations.fold(Tuple2(listOf<Movement>(), 0.amount()))
     { acc, operation ->
-        val balance = incBalance(acc.b, operation)
+        val balance = foldBalance(acc.b, operation)
         Tuple2(
             acc.a.plus(toMovement(operation, balance)),
             balance
