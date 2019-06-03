@@ -1,8 +1,6 @@
 package magelle.arrowkt.bankkata.account
 
-import arrow.core.Either
-import arrow.core.left
-import arrow.core.right
+import arrow.core.*
 import java.time.LocalDate
 
 
@@ -16,6 +14,12 @@ fun withdraw(account: Account, amount: Amount, date: LocalDate): Either<Error, A
 
 fun deposit(account: Account, amount: Amount, date: LocalDate): Either<Error, Account> =
     addOperation(account, Deposit(amount, date)).right()
+
+fun transfer(from: Account, to: Account, amount: Amount, date: LocalDate) =
+    withdraw(from, amount, date)
+        .flatMap { withdrawed -> deposit(to, amount, date)
+            .map { deposited -> Tuple2(withdrawed, deposited) } }
+
 
 private fun addOperation(
     account: Account,

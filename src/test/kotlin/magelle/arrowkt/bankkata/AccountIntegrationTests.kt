@@ -4,13 +4,8 @@ import arrow.core.left
 import arrow.effects.instances.io.monad.binding
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
-import magelle.arrowkt.bankkata.account.Error
-import magelle.arrowkt.bankkata.account.Movement
-import magelle.arrowkt.bankkata.account.amount
-import magelle.arrowkt.bankkata.account.usecase.askForAccountCreation
-import magelle.arrowkt.bankkata.account.usecase.askForDeposit
-import magelle.arrowkt.bankkata.account.usecase.askForWithdrawal
-import magelle.arrowkt.bankkata.account.usecase.printStatementQuery
+import magelle.arrowkt.bankkata.account.*
+import magelle.arrowkt.bankkata.account.usecase.*
 import magelle.arrowkt.bankkata.infra.getAccount
 import magelle.arrowkt.bankkata.infra.h2AccountStore
 import magelle.arrowkt.bankkata.infra.provideAccountId
@@ -38,6 +33,27 @@ class AccountIntegrationTests : StringSpec({
         }
     }
 
+    "deposit should update balance" {
+        h2AccountStore.transaction {
+            binding {
+                val accountId = bind { createAccount() }
+                bind { makeDeposit(accountId, 1000.amount()) }
+                bind { balance(accountId) } shouldBe 1000.amount()
+            }.unsafeRunSync()
+        }
+    }
+
+    "withdrawal should update balance" {
+        h2AccountStore.transaction {
+            binding {
+                val accountId = bind { createAccount() }
+                bind { makeDeposit(accountId, 1_000.amount()) }
+                bind { makeWithdrawal(accountId, 100.amount()) }
+                bind { balance(accountId) } shouldBe 900.amount()
+            }.unsafeRunSync()
+        }
+    }
+
     "should not allow to withdraw more than you have" {
         h2AccountStore.transaction {
             binding {
@@ -57,10 +73,28 @@ class AccountIntegrationTests : StringSpec({
             }.unsafeRunSync().isRight() shouldBe true
         }
     }
+
+    "Should make a transaction between two account" {
+        h2AccountStore.transaction {
+            binding {
+                val senderAccountId = bind { createAccount() }
+                val receiverAccountId = bind { createAccount() }
+                bind { makeDeposit(senderAccountId, 1_000.amount()) }
+                bind { balance(senderAccountId) } shouldBe 1_000.amount()
+                bind { balance(receiverAccountId) } shouldBe 0.amount()
+                bind { makeTransfer(senderAccountId, receiverAccountId, 300.amount()) }
+                bind { balance(senderAccountId) } shouldBe 700.amount()
+                bind { balance(receiverAccountId) } shouldBe 300.amount()
+            }.unsafeRunSync()
+        }
+    }
 })
 
 
 val createAccount = askForAccountCreation(provideAccountId, saveAccount)
 val makeDeposit = askForDeposit(now, getAccount, saveAccount)
 val makeWithdrawal = askForWithdrawal(now, getAccount, saveAccount)
+val makeTransfer = askForTransfer(now, getAccount, saveAccount)
+
+val balance = { accountId: AccountId -> getAccount(accountId).map { balanceLens.get(it) } }
 val printStatement = printStatementQuery(getAccount)

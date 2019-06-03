@@ -44,7 +44,5 @@ compileTestKotlin {
 }
 
 test {
-    useJUnitPlatform {
-        includeEngines 'spek2'
-    }
+    useJUnitPlatform ()
 }

@@ -55,18 +55,20 @@ val h2AccountStore = object : AccountStore {
     }
 
     private fun retrieveOperations(id: AccountId) =
-        Operations.select { Operations.accountId eq id.id }.map {
-            when (it[Operations.type]) {
-                OperationType.DEPOSIT -> Deposit(
-                    Amount(it[Operations.amount]),
-                    LocalDate.ofEpochDay(it[Operations.date])
-                )
-                OperationType.WITHDRAWAL -> Withdraw(
-                    Amount(it[Operations.amount]),
-                    LocalDate.ofEpochDay(it[Operations.date])
-                )
+        Operations.select { Operations.accountId eq id.id }
+            .map {
+                println(it)
+                when (it[Operations.type]) {
+                    OperationType.DEPOSIT -> Deposit(
+                        Amount(it[Operations.amount]),
+                        LocalDate.ofEpochDay(it[Operations.date])
+                    )
+                    OperationType.WITHDRAWAL -> Withdraw(
+                        Amount(it[Operations.amount]),
+                        LocalDate.ofEpochDay(it[Operations.date])
+                    )
+                }
             }
-        }
 
     private fun insertOperations(id: AccountId, operations: List<Operation>) =
         Operations.batchInsert(operations) {
