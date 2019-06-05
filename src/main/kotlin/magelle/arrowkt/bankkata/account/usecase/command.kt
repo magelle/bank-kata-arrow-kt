@@ -9,16 +9,10 @@ import java.time.LocalDate
 fun askForAccountCreation(
     provideAccountId: () -> IO<AccountId>,
     saveAccount: (Account) -> IO<AccountId>
-) = {
-    binding {
-        bind {
-            provideAccountId()
-                .map {
-                    saveAccount(Account(it))
-                    it
-                }
-        }
-    }
+) = { ->
+    provideAccountId()
+        .map { Account(it) }
+        .flatMap(saveAccount)
 }
 
 
@@ -69,21 +63,22 @@ fun get2(
     accountId1: AccountId,
     accountId2: AccountId
 ) =
-    getAccount(accountId1)
-        .flatMap { account1 ->
-            getAccount(accountId2)
-                .map { account2 -> Tuple2(account1, account2) }
-        }
+    binding {
+        Tuple2(
+            bind { getAccount(accountId1) },
+            bind { getAccount(accountId2) }
+        )
+    }
 
 fun save2(
     saveAccount: (Account) -> IO<AccountId>,
     account1: Account,
     account2: Account
 ) =
-    saveAccount(account1)
-        .flatMap { savedAccountId1 ->
-            saveAccount(account2)
-                .map { savedAccountId2 ->
-                    Tuple2(savedAccountId1, savedAccountId2)
-                }
-        }
+    binding {
+        Tuple2(
+            bind { saveAccount(account1) },
+            bind { saveAccount(account2) }
+        )
+    }
+

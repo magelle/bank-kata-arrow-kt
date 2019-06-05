@@ -17,8 +17,10 @@ fun deposit(account: Account, amount: Amount, date: LocalDate): Either<Error, Ac
 
 fun transfer(from: Account, to: Account, amount: Amount, date: LocalDate) =
     withdraw(from, amount, date)
-        .flatMap { withdrawed -> deposit(to, amount, date)
-            .map { deposited -> Tuple2(withdrawed, deposited) } }
+        .flatMap { withdrawed ->
+            deposit(to, amount, date)
+                .map { deposited -> Tuple2(withdrawed, deposited) }
+        }
 
 
 private fun addOperation(
