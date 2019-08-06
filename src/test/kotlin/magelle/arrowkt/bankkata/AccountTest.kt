@@ -1,8 +1,11 @@
 package magelle.arrowkt.bankkata
 
 import arrow.core.flatMap
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import io.kotlintest.properties.Gen
+import io.kotlintest.properties.forAll
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import magelle.arrowkt.bankkata.account.*
@@ -49,6 +52,16 @@ class AccountTest : StringSpec({
             .flatMap { deposit(it, 1000.amount(), LocalDate.of(2012, 1, 10)) }
             .flatMap { withdraw(it, 1000.amount(), LocalDate.of(2012, 1, 10)) }
             .isRight() shouldBe true
+    }
+
+    "I should not have a negative balance" {
+        forAll(Gen.positiveIntegers(), Gen.positiveIntegers()) { initialAmount: Int, amountToWithdraw: Int ->
+            Account(AccountId(1)).right()
+                .flatMap { deposit(it, initialAmount.amount(), LocalDate.of(2012, 1, 10)) }
+                .flatMap { withdraw(it, amountToWithdraw.amount(), LocalDate.of(2012, 1, 10)) }
+                .map { balanceLens.get(it).amount >= 0 }
+                .getOrElse { true }
+        }
     }
 
 })
