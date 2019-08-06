@@ -1,8 +1,15 @@
 package magelle.arrowkt.bankkata.account.usecase
 
 import arrow.core.Tuple2
+import arrow.core.right
+import arrow.data.EitherT
+import arrow.data.value
+import arrow.effects.ForIO
 import arrow.effects.IO
+import arrow.effects.fix
 import arrow.effects.instances.io.monad.binding
+import arrow.effects.instances.io.monad.monad
+import arrow.instances.eithert.monad.*
 import magelle.arrowkt.bankkata.account.*
 import java.time.LocalDate
 
@@ -49,36 +56,14 @@ fun askForTransfer(
 ) = { from: AccountId,
       to: AccountId,
       amount: Amount ->
-    binding {
-        val (fromAccount, toAccount) = bind { get2(getAccount, from, to) }
-        transfer(fromAccount, toAccount, amount, now())
-            .map { (minusAccount, plusAccount) ->
-                bind { save2(saveAccount, minusAccount, plusAccount) }
-            }
-    }
+    EitherT.monad<ForIO, Error>(IO.monad()).binding {
+        val debtor = EitherT(getAccount(from).map { it.right() }).bind()
+        val creditor = EitherT(getAccount(to).map { it.right() }).bind()
+        val (debited, credited) = EitherT(IO.just(transfer(debtor, creditor, amount, now()))).bind()
+        val debtorId = EitherT(saveAccount(debited).map { it.right() }).bind()
+        val creditorId = EitherT(saveAccount(credited).map { it.right() }).bind()
+        Tuple2(debtorId, creditorId)
+    }.value().fix()
 }
 
-fun get2(
-    getAccount: (AccountId) -> IO<Account>,
-    accountId1: AccountId,
-    accountId2: AccountId
-) =
-    binding {
-        Tuple2(
-            bind { getAccount(accountId1) },
-            bind { getAccount(accountId2) }
-        )
-    }
-
-fun save2(
-    saveAccount: (Account) -> IO<AccountId>,
-    account1: Account,
-    account2: Account
-) =
-    binding {
-        Tuple2(
-            bind { saveAccount(account1) },
-            bind { saveAccount(account2) }
-        )
-    }
 
