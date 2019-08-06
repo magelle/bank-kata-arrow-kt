@@ -2,6 +2,7 @@ package magelle.arrowkt.bankkata
 
 import arrow.core.left
 import arrow.effects.instances.io.monad.binding
+import arrow.syntax.function.curried
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 import magelle.arrowkt.bankkata.account.*
@@ -19,11 +20,11 @@ class AccountIntegrationTests : StringSpec({
                 val accountId = bind { createAccount() }
 
                 nowIs(LocalDate.of(2012, 1, 10))
-                bind { makeDeposit(accountId, 1000.amount()) }
+                bind { makeDeposit(accountId) (1_000.amount()) }
                 nowIs(LocalDate.of(2012, 1, 13))
-                bind { makeDeposit(accountId, 2000.amount()) }
+                bind { makeDeposit(accountId) (2_000.amount()) }
                 nowIs(LocalDate.of(2012, 1, 14))
-                bind { makeWithdrawal(accountId, 500.amount()) }
+                bind { makeWithdrawal(accountId) (500.amount()) }
                 bind { printStatement(accountId) }
             }.unsafeRunSync() shouldBe listOf(
                 Movement(date = "14/01/2012", credit = "", debit = "500", balance = "2500"),
@@ -37,8 +38,8 @@ class AccountIntegrationTests : StringSpec({
         h2AccountStore.transaction {
             binding {
                 val accountId = bind { createAccount() }
-                bind { makeDeposit(accountId, 1000.amount()) }
-                bind { balance(accountId) } shouldBe 1000.amount()
+                bind { makeDeposit(accountId)(1_000.amount()) }
+                bind { balance(accountId) } shouldBe 1_000.amount()
             }.unsafeRunSync()
         }
     }
@@ -47,8 +48,8 @@ class AccountIntegrationTests : StringSpec({
         h2AccountStore.transaction {
             binding {
                 val accountId = bind { createAccount() }
-                bind { makeDeposit(accountId, 1_000.amount()) }
-                bind { makeWithdrawal(accountId, 100.amount()) }
+                bind { makeDeposit(accountId)(1_000.amount()) }
+                bind { makeWithdrawal(accountId) (100.amount()) }
                 bind { balance(accountId) } shouldBe 900.amount()
             }.unsafeRunSync()
         }
@@ -58,8 +59,8 @@ class AccountIntegrationTests : StringSpec({
         h2AccountStore.transaction {
             binding {
                 val accountId = bind { createAccount() }
-                bind { makeDeposit(accountId, 1000.amount()) }
-                bind { makeWithdrawal(accountId, 1001.amount()) }
+                bind { makeDeposit(accountId)(1_000.amount()) }
+                bind { makeWithdrawal(accountId) (1001.amount()) }
             }.unsafeRunSync() shouldBe Error("You can't withdraw more than the balance.").left()
         }
     }
@@ -68,8 +69,8 @@ class AccountIntegrationTests : StringSpec({
         h2AccountStore.transaction {
             binding {
                 val accountId = bind { createAccount() }
-                bind { makeDeposit(accountId, 1000.amount()) }
-                bind { makeWithdrawal(accountId, 1000.amount()) }
+                bind { makeDeposit(accountId)(1_000.amount()) }
+                bind { makeWithdrawal(accountId) (1_000.amount()) }
             }.unsafeRunSync().isRight() shouldBe true
         }
     }
@@ -79,10 +80,10 @@ class AccountIntegrationTests : StringSpec({
             binding {
                 val senderAccountId = bind { createAccount() }
                 val receiverAccountId = bind { createAccount() }
-                bind { makeDeposit(senderAccountId, 1_000.amount()) }
+                bind { makeDeposit(senderAccountId)(1_000.amount()) }
                 bind { balance(senderAccountId) } shouldBe 1_000.amount()
                 bind { balance(receiverAccountId) } shouldBe 0.amount()
-                bind { makeTransfer(senderAccountId, receiverAccountId, 300.amount()) }
+                bind { makeTransfer(senderAccountId) (receiverAccountId) (300.amount()) }
                 bind { balance(senderAccountId) } shouldBe 700.amount()
                 bind { balance(receiverAccountId) } shouldBe 300.amount()
             }.unsafeRunSync()
@@ -91,10 +92,10 @@ class AccountIntegrationTests : StringSpec({
 })
 
 
-val createAccount = askForAccountCreation(provideAccountId, saveAccount)
-val makeDeposit = askForDeposit(now, getAccount, saveAccount)
-val makeWithdrawal = askForWithdrawal(now, getAccount, saveAccount)
-val makeTransfer = askForTransfer(now, getAccount, saveAccount)
+val createAccount = ::askForAccountCreation.curried() (provideAccountId) (saveAccount)
+val makeDeposit = ::askForDeposit.curried() (now) (getAccount) (saveAccount)
+val makeWithdrawal = ::askForWithdrawal.curried() (now) (getAccount) (saveAccount)
+val makeTransfer = ::askForTransfer.curried() (now) (getAccount) (saveAccount)
 
-val balance = { accountId: AccountId -> getAccount(accountId).map { balanceLens.get(it) } }
-val printStatement = printStatementQuery(getAccount)
+val balance = ::getBalance.curried() (getAccount)
+val printStatement = ::printStatementQuery.curried() (getAccount)

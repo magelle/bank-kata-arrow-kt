@@ -1,5 +1,6 @@
 package magelle.arrowkt.bankkata.account.usecase
 
+import arrow.core.Either
 import arrow.core.Tuple2
 import arrow.core.right
 import arrow.data.EitherT
@@ -16,46 +17,51 @@ import java.time.LocalDate
 fun askForAccountCreation(
     provideAccountId: () -> IO<AccountId>,
     saveAccount: (Account) -> IO<AccountId>
-) = { ->
-    provideAccountId()
+): () -> IO<AccountId> {
+    return {
+        provideAccountId()
         .map { Account(it) }
         .flatMap(saveAccount)
+    }
 }
 
 
 fun askForDeposit(
     now: () -> LocalDate,
     getAccount: (AccountId) -> IO<Account>,
-    saveAccount: (Account) -> IO<AccountId>
-) = { accountId: AccountId,
-      amount: Amount ->
+    saveAccount: (Account) -> IO<AccountId>,
+    accountId: AccountId,
+    amount: Amount
+): IO<Either<Error, AccountId>> =
     binding {
         val account = bind { getAccount(accountId) }
         deposit(account, amount, now())
             .map { bind { saveAccount(it) } }
     }
-}
+
 
 fun askForWithdrawal(
     now: () -> LocalDate,
     getAccount: (AccountId) -> IO<Account>,
-    saveAccount: (Account) -> IO<AccountId>
-) = { accountId: AccountId,
-      amount: Amount ->
+    saveAccount: (Account) -> IO<AccountId>,
+    accountId: AccountId,
+    amount: Amount
+): IO<Either<Error, AccountId>> =
     binding {
         val account = bind { getAccount(accountId) }
         withdraw(account, amount, now())
             .map { bind { saveAccount(it) } }
     }
-}
+
 
 fun askForTransfer(
     now: () -> LocalDate,
     getAccount: (AccountId) -> IO<Account>,
-    saveAccount: (Account) -> IO<AccountId>
-) = { from: AccountId,
-      to: AccountId,
-      amount: Amount ->
+    saveAccount: (Account) -> IO<AccountId>,
+    from: AccountId,
+    to: AccountId,
+    amount: Amount
+): IO<Either<Error, Tuple2<AccountId, AccountId>>> =
     EitherT.monad<ForIO, Error>(IO.monad()).binding {
         val debtor = EitherT(getAccount(from).map { it.right() }).bind()
         val creditor = EitherT(getAccount(to).map { it.right() }).bind()
@@ -64,6 +70,3 @@ fun askForTransfer(
         val creditorId = EitherT(saveAccount(credited).map { it.right() }).bind()
         Tuple2(debtorId, creditorId)
     }.value().fix()
-}
-
-
